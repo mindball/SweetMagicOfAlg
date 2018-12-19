@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
+
+//this algorithm may also have a condition: delete a minimum number of numbers from the array to be arranged in ascending order.
+//The same task only as formulated in another way
 class LIS
 {
     static void Main()
