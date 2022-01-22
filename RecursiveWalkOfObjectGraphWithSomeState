@@ -1,0 +1,108 @@
+        List<ObjectBase> GetObjectStates()
+        {
+            List<ObjectBase> someStates = new List<ObjectBase>();
+            List<ObjectBase> visited = new List<ObjectBase>();
+            Action<ObjectBase> walk = null;
+
+            walk = (o) =>
+            {
+                if (o != null && !visited.Contains(o))
+                {
+                    visited.Add(o);
+            
+                   if(o.SomeState)
+                      someStates.Add(o);
+                      
+                    bool exitWalk = false
+                    if (!exitWalk)
+                    {
+                        PropertyInfo[] properties = o.GetProperties();
+                        foreach (PropertyInfo property in properties)
+                        {
+                            if (!exemptions.Contains(property.Name))
+                            {
+                                if (property.PropertyType.IsSubclassOf(typeof(ObjectBase)))
+                                {
+                                    ObjectBase obj = (ObjectBase)(property.GetValue(o, null));
+                                    walk(obj);
+                                }
+                                else
+                                {
+                                    IList coll = property.GetValue(o, null) as IList;
+                                    if (coll != null)
+                                    {
+                                        snippetForCollection.Invoke(coll);
+
+                                        foreach (object item in coll)
+                                        {
+                                            if (item is ObjectBase)
+                                                walk((ObjectBase)item);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            walk(this);
+        }
+        return someStates;
+}
+
+//And original:
+protected void WalkObjectGraph(Func<ObjectBase, bool> snippetForObject,
+                                       Action<IList> snippetForCollection,
+                                       params string[] exemptProperties)
+        {
+            List<ObjectBase> visited = new List<ObjectBase>();
+            Action<ObjectBase> walk = null;
+
+            List<string> exemptions = new List<string>();
+            if (exemptProperties != null)
+                exemptions = exemptProperties.ToList();
+
+            walk = (o) =>
+            {
+                if (o != null && !visited.Contains(o))
+                {
+                    visited.Add(o);
+
+                    bool exitWalk = snippetForObject.Invoke(o);
+
+                    if (!exitWalk)
+                    {
+                        PropertyInfo[] properties = o.GetBrowsableProperties();
+                        foreach (PropertyInfo property in properties)
+                        {
+                            if (!exemptions.Contains(property.Name))
+                            {
+                                if (property.PropertyType.IsSubclassOf(typeof(ObjectBase)))
+                                {
+                                    ObjectBase obj = (ObjectBase)(property.GetValue(o, null));
+                                    walk(obj);
+                                }
+                                else
+                                {
+                                    IList coll = property.GetValue(o, null) as IList;
+                                    if (coll != null)
+                                    {
+                                        snippetForCollection.Invoke(coll);
+
+                                        foreach (object item in coll)
+                                        {
+                                            if (item is ObjectBase)
+                                                walk((ObjectBase)item);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            walk(this);
+        }
+
