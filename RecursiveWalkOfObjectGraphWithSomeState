@@ -52,6 +52,33 @@
 }
 
 //And original:
+public List<SomeState> GetSomeStatesObjects()
+        {
+            List<SomeState> someStates = new List<SomeState>();
+
+            WalkObjectGraph(
+            o =>
+            {
+                if (o.IsDirty)
+                    someStates.Add(o);
+
+                return false;
+            }, coll => { });
+
+            return someStates;
+        }
+        
+        public void CleanAll()
+        {
+            WalkObjectGraph(
+            o =>
+            {
+                if (o.SomeState)
+                    o.SomeState = false;
+                return false;
+            }, coll => { });
+        }
+        
 protected void WalkObjectGraph(Func<ObjectBase, bool> snippetForObject,
                                        Action<IList> snippetForCollection,
                                        params string[] exemptProperties)
